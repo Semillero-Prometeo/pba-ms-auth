@@ -55,7 +55,6 @@ export class PersonRepository {
       created_at: new Date(),
       updated_at: new Date(),
       deleted_at: null,
-      synchronized_at: null,
     };
 
     return this.prismaService.person.create({
