@@ -32,8 +32,10 @@ export const createSeedRoles = async () => {
 };
 
 async function createSeedUser() {
+  const username: string = 'admin-prometeo@unilibre.edu.co';
+
   const existingUser = await prisma.user.findFirst({
-    where: { username: 'admin@krediya.edu.co' },
+    where: { username },
   });
 
   if (existingUser) {
@@ -52,7 +54,6 @@ async function createSeedUser() {
   }
 
   // Crear la persona
-  const username: string = 'admin@krediya.edu.co';
 
   const data: Prisma.personCreateInput = {
     document_type: {
@@ -61,7 +62,7 @@ async function createSeedUser() {
       },
     },
     first_name: 'Administrador',
-    last_name: 'Krediya',
+    last_name: 'Prometeo',
     email: username,
     document_number: '123456789',
     phone: '3001234567',
@@ -73,7 +74,7 @@ async function createSeedUser() {
 
   // Hashear la contraseña
   const saltRounds = 10;
-  const hashedPassword = await bcrypt.hash('Krediya2026*', saltRounds);
+  const hashedPassword = await bcrypt.hash('Prometeo2026*', saltRounds);
 
   // Crear el usuario
   const user = await prisma.user.create({
