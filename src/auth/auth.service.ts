@@ -37,9 +37,8 @@ export class AuthService {
   ) {}
 
   private async generateJwt(payload: Payload) {
-    const sessionExpiration = (await this.appSettingsService.getSetting(AppSettings.SESSION_EXPIRATION)) || {
-      value: '900',
-    };
+    const sessionExpiration: app_settings = await this.appSettingsService.getSetting(AppSettings.SESSION_EXPIRATION);
+
     if (!sessionExpiration) {
       throw new RpcException({
         message: 'No se ha establecido la duración de la sesión',
@@ -50,7 +49,7 @@ export class AuthService {
     return this.jwtService.sign(
       { ...payload },
       {
-        expiresIn: `${Number(sessionExpiration.value)}s`,
+        expiresIn: `${Number(sessionExpiration.value)}h`,
         secret: this.configService.secret,
       },
     );

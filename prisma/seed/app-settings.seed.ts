@@ -3,7 +3,7 @@ import { AppSettings, Prisma } from '@prisma/client';
 export const APP_SETTINGS_SEED: Prisma.app_settingsCreateInput[] = [
   {
     key: AppSettings.SESSION_EXPIRATION,
-    value: '900',
+    value: '8',
     start_at: new Date(),
   },
   {

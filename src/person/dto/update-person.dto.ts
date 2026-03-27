@@ -36,10 +36,6 @@ export class UpdatePersonDto {
   @IsOptional()
   @MaxLength(40)
   email?: string;
-
-  @IsOptional()
-  @IsNumber()
-  moodle_id?: number
 }
 
 export class UpdatePersonPayload {
