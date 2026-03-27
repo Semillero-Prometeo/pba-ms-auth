@@ -13,5 +13,3 @@ COPY --chown=node:node . .
 
 # Exponer el puerto de debugging
 EXPOSE 9230
-
-RUN npx prisma db seed
