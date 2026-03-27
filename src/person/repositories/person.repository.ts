@@ -8,6 +8,7 @@ import { FindAllPersonsDto, FindPersonByDocumentDto } from '../dto/find-person.d
 import { PrismaService } from 'src/core/database/database.service';
 import { hasPersonChanged } from '../utils/person.utils';
 import { PersonResponse } from '../interfaces/person';
+import { PaginatedResponse } from 'src/core/interfaces/paginated';
 
 @Injectable()
 export class PersonRepository {
@@ -62,7 +63,7 @@ export class PersonRepository {
     });
   }
 
-  async findAll({ skip, take, search: contains }: FindAllPersonsDto) {
+  async findAll({ skip, take, search: contains }: FindAllPersonsDto): Promise<PaginatedResponse<person>> {
     const defaultWhere: Prisma.personWhereInput = { deleted_at: null };
     const where: Prisma.personWhereInput = contains
       ? {

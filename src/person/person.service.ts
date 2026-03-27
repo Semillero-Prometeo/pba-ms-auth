@@ -6,6 +6,8 @@ import { RpcException } from '@nestjs/microservices';
 import { FindAllPersonsDto } from './dto/find-person.dto';
 import { DocumentTypesService } from 'src/document-types/document-types.service';
 import { UsersService } from 'src/users/users.service';
+import { PaginatedResponse } from 'src/core/interfaces/paginated';
+import { person } from '@prisma/client';
 @Injectable()
 export class PersonService {
   constructor(
@@ -27,11 +29,11 @@ export class PersonService {
     return this.personRepository.create(createPersonDto);
   }
 
-  findAll(query: FindAllPersonsDto) {
+  async findAll(query: FindAllPersonsDto): Promise<PaginatedResponse<person>> {
     return this.personRepository.findAll(query);
   }
 
-  findOne(id: string) {
+  async findOne(id: string): Promise<person | null> {
     return this.personRepository.findOne(id);
   }
 
