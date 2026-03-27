@@ -8,7 +8,7 @@ export const APP_SETTINGS_SEED: Prisma.app_settingsCreateInput[] = [
   },
   {
     key: AppSettings.FRONT_END_URL,
-    value: 'https://portal-web-prod-622073829502.us-east1.run.app',
+    value: '',
     start_at: new Date(),
   },
   {
@@ -18,7 +18,7 @@ export const APP_SETTINGS_SEED: Prisma.app_settingsCreateInput[] = [
   },
   {
     key: AppSettings.LOCK_LOGIN_ATTEMPTS,
-    value: '3',
+    value: '5',
     start_at: new Date(),
   },
 ];
