@@ -1,0 +1,15 @@
+FROM node:22-slim AS base
+
+WORKDIR /usr/src/app
+
+COPY --chown=node:node package*.json ./
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends procps \
+  && rm -rf /var/lib/apt/lists/* \
+  && npm install
+
+COPY --chown=node:node . .
+
+# Exponer el puerto de debugging
+EXPOSE 9230
