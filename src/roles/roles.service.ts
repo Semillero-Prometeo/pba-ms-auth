@@ -33,7 +33,7 @@ export class RolesService {
   }
 
   async setRoles(setRolesDto: SetRoleDto) {
-    const user = await this.usersService.findOne(setRolesDto.userId);
+    const user = await this.usersService.findOne(setRolesDto.user_id);
     if (!user) {
       throw new RpcException({
         statusCode: HttpStatus.BAD_REQUEST,

@@ -66,7 +66,7 @@ export class RolesRepository {
   }
 
   async setRoles(setRolesDto: SetRoleDto) {
-    const { rolesId, userId: user_id } = setRolesDto;
+    const { roles_id, user_id } = setRolesDto;
 
     const existingRoles = await this.prismaService.user_role.findMany({
       where: { user_id },
@@ -74,7 +74,7 @@ export class RolesRepository {
     });
 
     const existingRoleIds = new Set(existingRoles.map((ur) => ur.role_id));
-    const incomingRoleIds = new Set(rolesId);
+    const incomingRoleIds = new Set(roles_id);
 
     const toDelete = [...existingRoleIds].filter((id) => !incomingRoleIds.has(id));
     const toCreate = [...incomingRoleIds].filter((id) => !existingRoleIds.has(id));

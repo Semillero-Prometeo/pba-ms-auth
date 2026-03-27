@@ -3,14 +3,14 @@ import { ArrayMinSize, IsArray, IsNotEmpty, IsObject, IsString, ValidateNested }
 import { RequestUserDto } from 'src/core/dto/request-user.dto';
 
 export class SetRoleDto {
-  @IsString({ message: 'El campo userId debe ser de tipo string' })
-  @IsNotEmpty({ message: 'El campo userId no debe estar vacío' })
-  userId: string;
+  @IsString({ message: 'El campo user_id debe ser de tipo string' })
+  @IsNotEmpty({ message: 'El campo user_id no debe estar vacío' })
+  user_id: string;
 
-  @IsArray({ message: 'El campo rolesId debe ser un array' })
-  @ArrayMinSize(1, { message: 'Debe incluir al menos un roleId' })
-  @IsString({ each: true, message: 'Cada roleId debe ser de tipo string' })
-  rolesId: string[];
+  @IsArray({ message: 'El campo roles_id debe ser un array' })
+  @ArrayMinSize(1, { message: 'Debe incluir al menos un role_id' })
+  @IsString({ each: true, message: 'Cada role_id debe ser de tipo string' })
+  roles_id: string[];
 }
 
 export class SetRolePayload {
