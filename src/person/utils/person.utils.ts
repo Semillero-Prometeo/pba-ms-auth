@@ -9,8 +9,6 @@ export const hasPersonChanged = (newPerson: CreatePersonDto, existingPerson: per
     'last_name',
     'email',
     'phone',
-    'country_id',
-    'image_url',
   ];
 
   for (const prop of personPropertiesToCompare) {
