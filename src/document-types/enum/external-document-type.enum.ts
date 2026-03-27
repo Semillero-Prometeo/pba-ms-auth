@@ -1,0 +1,7 @@
+export enum ExternalDocumentType {
+  NACIONAL = 'NACIONAL',
+  EXTRANJERO = 'EXTRANJERO',
+  PASAPORTE = 'PASAPORTE',
+  RESIDENCIA = 'RESIDENCIA',
+  OTRO = 'OTRO',
+}
