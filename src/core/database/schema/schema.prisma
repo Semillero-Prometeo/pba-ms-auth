@@ -1,0 +1,140 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  engineType    = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model app_settings {
+  id         String      @id @default(uuid()) @db.Char(36)
+  deleted_at DateTime?
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
+  key        AppSettings
+  value      String      @db.VarChar(255)
+  start_at   DateTime
+
+  @@unique([key, start_at], map: "unique_app_settings")
+  @@index([key], map: "app_settings_key_index")
+}
+
+model document_type {
+  id         String        @id @default(uuid()) @db.Char(36)
+  short_name DocumentTypes @unique
+  name       String        @db.VarChar(45)
+  created_at DateTime      @default(now())
+  updated_at DateTime      @updatedAt
+  deleted_at DateTime?
+  person     person[]
+
+  @@index([name], map: "document_type_name_index")
+}
+
+model role {
+  id         String      @id @default(uuid()) @db.Char(36)
+  name       Roles       @unique @default(USER)
+  deleted_at DateTime?
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
+  user_role  user_role[]
+
+  @@index([name], map: "role_name_index")
+}
+
+model user {
+  id              String      @id @default(uuid()) @db.Char(36)
+  person_id       String?     @db.Char(36)
+  username        String      @unique @db.VarChar(120)
+  password        String      @db.VarChar(255)
+  temp_password   String?     @db.VarChar(255)
+  failed_attempts Int         @default(0)
+  lock_until      DateTime?
+  is_first_login  Boolean     @default(true)
+  deleted_reason  String?     @db.VarChar(500)
+  deleted_at      DateTime?
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+  sessions        session[]
+  person          person?     @relation(fields: [person_id], references: [id])
+  user_role       user_role[]
+
+  @@index([username], map: "user_username_index")
+  @@index([person_id], map: "unique_user_person_id")
+}
+
+model session {
+  id         String    @id @default(uuid()) @db.Char(36)
+  user_id    String    @db.Char(36)
+  token      String    @unique @db.VarChar(500)
+  expires_at DateTime
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  user       user      @relation(fields: [user_id], references: [id])
+
+  @@index([user_id], map: "unique_session_user_id")
+}
+
+model user_role {
+  id         String   @id @default(uuid()) @db.Char(36)
+  user_id    String   @db.Char(36)
+  role_id    String   @db.Char(36)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  role       role     @relation(fields: [role_id], references: [id])
+  user       user     @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, role_id], map: "unique_user_role")
+  @@index([role_id], map: "unique_user_role_role_id")
+}
+
+model person {
+  id               String    @id @default(uuid()) @db.Char(36)
+  moodle_id        Int?      @unique
+  document_type_id String    @db.Char(36)
+  first_name       String    @db.VarChar(50)
+  last_name        String    @db.VarChar(50)
+  email            String    @unique @db.VarChar(40)
+  document_number  String?   @db.VarChar(11)
+  phone            String?   @db.VarChar(15)
+  image_url        String?   @db.VarChar(255)
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  deleted_at       DateTime?
+  synchronized_at  DateTime?
+  birth_date       DateTime?
+
+  document_type document_type @relation(fields: [document_type_id], references: [id])
+  user          user[]
+
+  @@unique([document_number, document_type_id], map: "unique_identification")
+  @@index([moodle_id], map: "idx_person_moodle")
+  @@index([email], map: "idx_person_email")
+  @@index([deleted_at], map: "idx_person_deleted_at")
+  @@index([document_type_id], map: "unique_person_document_type_id")
+}
+
+enum Roles {
+  ADMIN
+  USER
+  STUDENT
+  TEACHER
+}
+
+enum DocumentTypes {
+  FOREIGNER_ID
+  NATIONAL_ID
+  PASSPORT
+  RESIDENCY_PERMISSION
+  OTHER
+}
+
+enum AppSettings {
+  FRONT_END_URL
+  LOCK_LOGIN_UNTIL
+  LOCK_LOGIN_ATTEMPTS
+  SESSION_EXPIRATION
+}

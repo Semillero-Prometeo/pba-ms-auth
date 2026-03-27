@@ -1,0 +1,8 @@
+export enum CurrentOcupation {
+    EMPLEADO = 'EMPLEADO',
+    DESEMPLEADO = 'DESEMPLEADO',
+    INDEPENDIENTE = 'INDEPENDIENTE',
+    ESTUDIANTE = 'ESTUDIANTE',
+    RETIRADO = 'RETIRADO',
+    OTRO = 'OTRO',
+}
