@@ -6,6 +6,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["auth"]
 }
 
 model app_settings {
@@ -19,6 +20,7 @@ model app_settings {
 
   @@unique([key, start_at], map: "unique_app_settings")
   @@index([key], map: "app_settings_key_index")
+  @@schema("auth")
 }
 
 model document_type {
@@ -31,6 +33,7 @@ model document_type {
   person     person[]
 
   @@index([name], map: "document_type_name_index")
+  @@schema("auth")
 }
 
 model role {
@@ -42,6 +45,7 @@ model role {
   user_role  user_role[]
 
   @@index([name], map: "role_name_index")
+  @@schema("auth")
 }
 
 model user {
@@ -63,6 +67,7 @@ model user {
 
   @@index([username], map: "user_username_index")
   @@index([person_id], map: "unique_user_person_id")
+  @@schema("auth")
 }
 
 model session {
@@ -76,6 +81,7 @@ model session {
   user       user      @relation(fields: [user_id], references: [id])
 
   @@index([user_id], map: "unique_session_user_id")
+  @@schema("auth")
 }
 
 model user_role {
@@ -89,6 +95,7 @@ model user_role {
 
   @@unique([user_id, role_id], map: "unique_user_role")
   @@index([role_id], map: "unique_user_role_role_id")
+  @@schema("auth")
 }
 
 model person {
@@ -115,6 +122,7 @@ model person {
   @@index([email], map: "idx_person_email")
   @@index([deleted_at], map: "idx_person_deleted_at")
   @@index([document_type_id], map: "unique_person_document_type_id")
+  @@schema("auth")
 }
 
 enum Roles {
@@ -122,6 +130,8 @@ enum Roles {
   USER
   STUDENT
   TEACHER
+
+  @@schema("auth")
 }
 
 enum DocumentTypes {
@@ -130,6 +140,8 @@ enum DocumentTypes {
   PASSPORT
   RESIDENCY_PERMISSION
   OTHER
+
+  @@schema("auth")
 }
 
 enum AppSettings {
@@ -137,4 +149,6 @@ enum AppSettings {
   LOCK_LOGIN_UNTIL
   LOCK_LOGIN_ATTEMPTS
   SESSION_EXPIRATION
+
+  @@schema("auth")
 }
