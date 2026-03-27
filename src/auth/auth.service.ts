@@ -8,7 +8,7 @@ import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { RpcException } from '@nestjs/microservices';
-import { app_settings, AppSettings, session, user } from '@prisma/client';
+import { app_settings, AppSettings, session } from '@prisma/client';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 import { compare } from 'bcrypt';
 import { CreateSessionDto } from './dto/session.dto';
@@ -17,10 +17,6 @@ import { SessionService } from './services/session.service';
 import { AppSettingsService } from 'src/app-settings/app-settings.service';
 import { FirstTimeLoginUser, UserResponse } from 'src/users/interfaces/user';
 import { PasswordGeneratorService } from './services/password-generator.service';
-import { userIsCompleted } from './utils/user-is-completed.utils';
-import { NotificationName } from 'src/core/enums/notification-name.enum';
-import { Template } from 'src/core/enums/template.enum';
-import { ResetPasswordMetadata } from './interfaces/reset-password';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -247,16 +243,7 @@ export class AuthService {
 
     this.logger.log(`Login successful for user ${user.username}`);
 
-    const refreshToken = await this.generateRefreshToken({
-      user: {
-        id: user.id,
-        roles: user.user_role.map((userRole) => userRole.role.id),
-      },
-    });
-
-    const isCompleted: boolean = userIsCompleted(user);
-
-    return { accessToken, refreshToken, isCompleted };
+    return { accessToken };
   }
 
   async requestNewPassword(email: string) {
@@ -310,8 +297,6 @@ export class AuthService {
 
     this.logger.log(`Token refreshed for user ${user.username}`);
 
-    const isCompleted: boolean = userIsCompleted(user);
-
-    return { accessToken, isCompleted };
+    return { accessToken };
   }
 }
