@@ -10,12 +10,22 @@ import { CreateRoleDto } from './dto/create-role.dto';
 
 @Injectable()
 export class RolesService {
-  constructor(private readonly rolesRepository: RolesRepository,
-    @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService
+  constructor(
+    private readonly rolesRepository: RolesRepository,
+    @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService,
   ) {}
 
-  findOne(unique: string): Promise<role | null> {
-    return this.rolesRepository.findOne(unique);
+  async findOne(unique: string): Promise<role> {
+    const role: role | null = await this.rolesRepository.findOne(unique);
+
+    if (!role) {
+      throw new RpcException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Rol no encontrado',
+      });
+    }
+
+    return role;
   }
 
   findAll(query: FindAllQueryDto) {
@@ -25,7 +35,7 @@ export class RolesService {
   async setRoles(setRolesDto: SetRoleDto) {
     const user = await this.usersService.findOne(setRolesDto.userId);
     if (!user) {
-      throw new RpcException({  
+      throw new RpcException({
         statusCode: HttpStatus.BAD_REQUEST,
         message: 'Usuario no encontrado',
       });
@@ -40,5 +50,4 @@ export class RolesService {
   deleteRole(id: string) {
     return this.rolesRepository.deleteRole(id);
   }
-  
 }
