@@ -34,7 +34,16 @@ export class PersonService {
   }
 
   async findOne(id: string): Promise<person | null> {
-    return this.personRepository.findOne(id);
+    const person: person | null = await this.personRepository.findOne(id);
+
+    if (!person) {
+      throw new RpcException({
+        message: `La persona con id ${id} no existe`,
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    return person;
   }
 
   async update(id: string, updatePersonDto: UpdatePersonDto) {

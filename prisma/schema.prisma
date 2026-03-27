@@ -100,7 +100,6 @@ model user_role {
 
 model person {
   id               String    @id @default(uuid()) @db.Char(36)
-  moodle_id        Int?      @unique
   document_type_id String    @db.Char(36)
   first_name       String    @db.VarChar(50)
   last_name        String    @db.VarChar(50)
@@ -111,14 +110,12 @@ model person {
   created_at       DateTime  @default(now())
   updated_at       DateTime  @updatedAt
   deleted_at       DateTime?
-  synchronized_at  DateTime?
   birth_date       DateTime?
 
   document_type document_type @relation(fields: [document_type_id], references: [id])
   user          user[]
 
   @@unique([document_number, document_type_id], map: "unique_identification")
-  @@index([moodle_id], map: "idx_person_moodle")
   @@index([email], map: "idx_person_email")
   @@index([deleted_at], map: "idx_person_deleted_at")
   @@index([document_type_id], map: "unique_person_document_type_id")
