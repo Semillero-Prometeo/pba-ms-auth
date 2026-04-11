@@ -14,4 +14,4 @@ RUN npm ci --prefer-offline
 # 3. Código fuente — la capa que cambia con más frecuencia
 COPY --chown=node:node . .
 
-EXPOSE 9230
+EXPOSE 9231
