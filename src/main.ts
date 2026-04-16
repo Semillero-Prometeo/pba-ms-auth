@@ -1,5 +1,4 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
@@ -25,8 +24,6 @@ async function bootstrap() {
     },
   });
 
-  const configService: ConfigService = app.get<ConfigService>(ConfigService);
-
   // Set the global pipes
   app.useGlobalPipes(new ValidationPipe(validationOptions));
 
@@ -34,11 +31,8 @@ async function bootstrap() {
   // Apply AllExceptionsFilter first to catch any exceptions
   // Then apply RpcCustomExceptionFilter to format RPC exceptions
   app.useGlobalFilters(new AllExceptionsFilter(), new RpcCustomExceptionFilter());
-
-  // Get the port from the configuration
-  const port: number = configService.get<number>('configEnvs.port') || 3001;
   await app.listen();
 
-  logger.log('Application is running on: ' + port);
+  logger.log('Application is running on NATS');
 }
 bootstrap();
