@@ -31,9 +31,15 @@ export const createSeedRoles = async () => {
   });
 };
 
-async function createSeedUser() {
-  const username: string = 'admin-prometeo@unilibre.edu.co';
-
+async function createSeedUser({
+  id,
+  username,
+  documentNumber,
+}: {
+  id: string;
+  username: string;
+  documentNumber: string;
+}) {
   const existingUser = await prisma.user.findFirst({
     where: { username },
   });
@@ -62,9 +68,9 @@ async function createSeedUser() {
       },
     },
     first_name: 'Administrador',
-    last_name: 'Prometeo',
+    last_name: id,
     email: username,
-    document_number: '123456789',
+    document_number: documentNumber,
     phone: '3001234567',
   };
 
@@ -115,7 +121,9 @@ export async function createAppSettings() {
 async function main() {
   await createDocumentTypes();
   await createSeedRoles();
-  await createSeedUser();
+  await createSeedUser({ id: '1', username: 'admin-prometeo@unilibre.edu.co', documentNumber: '123456789' });
+  await createSeedUser({ id: '2', username: 'admin-prometeo2@unilibre.edu.co', documentNumber: '1234567892' });
+  await createSeedUser({ id: '3', username: 'admin-prometeo3@unilibre.edu.co', documentNumber: '1234567893' });
   await createAppSettings();
 
   console.info('Datos insertados correctamente.');
