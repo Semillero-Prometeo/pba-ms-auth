@@ -210,7 +210,8 @@ export class UsersRepository {
   }
 
   async update(where: Prisma.userWhereUniqueInput, updateUserDto: UpdateUserDto) {
-    const data: Prisma.userUpdateInput = { ...updateUserDto };
+    const { person: _person, role_ids: _roleIds, role_id: _roleId, person_id, ...scalars } = updateUserDto;
+    const data: Prisma.userUpdateInput = { ...scalars };
 
     // Obtener el usuario antes de actualizarlo para comparar cambios
     const currentUser = await this.prismaService.user.findUnique({
@@ -242,7 +243,7 @@ export class UsersRepository {
       // Actualizar el email en la tabla persona
       await this.prismaService.person.update({
         data: { email: updateUserDto.username },
-        where: { id: updateUserDto.person_id || currentUser.person.id },
+        where: { id: person_id || currentUser.person.id },
       });
     }
 

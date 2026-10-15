@@ -4,6 +4,7 @@ const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 
 const src = readFileSync(join(__dirname, '../src/users/users.service.ts'), 'utf8');
+const repo = readFileSync(join(__dirname, '../src/users/repositories/users.repository.ts'), 'utf8');
 
 describe('updateAuthUser admin edit', () => {
   it('treats the current password as a no-op', () => {
@@ -16,5 +17,10 @@ describe('updateAuthUser admin edit', () => {
     assert.match(src, /person/);
     assert.match(src, /No puedes dejar el sistema sin un administrador/);
     assert.match(src, /No puedes darte de baja a ti mismo/);
+  });
+
+  it('does not spread person onto Prisma userUpdateInput', () => {
+    assert.equal(repo.includes('const data: Prisma.userUpdateInput = { ...updateUserDto }'), false);
+    assert.match(repo, /role_ids/);
   });
 });
