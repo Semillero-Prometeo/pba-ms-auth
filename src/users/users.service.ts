@@ -63,8 +63,8 @@ export class UsersService {
       });
     }
 
-    const { password, username, role_ids } = data;
-    if (!password && !username && !role_ids?.length) {
+    const { password, username, role_ids, person } = data;
+    if (!password && !username && !role_ids && !person) {
       throw new RpcException({
         statusCode: HttpStatus.BAD_REQUEST,
         message: 'No se ha enviado ningún dato para actualizar',
@@ -72,14 +72,10 @@ export class UsersService {
     }
 
     if (password) {
-      const isOldPassword = await bcrypt.compare(password, exists.password);
-      if (isOldPassword) {
-        throw new RpcException({
-          statusCode: HttpStatus.BAD_REQUEST,
-          message: 'Esta contraseña ya ha sido utilizada anteriormente, por favor elige una nueva',
-        });
+      const same = await bcrypt.compare(password, exists.password);
+      if (!same) {
+        await this.userRepository.update({ id }, { password, is_first_login: false });
       }
-      await this.userRepository.update({ id }, { password, is_first_login: true });
     }
 
     if (username) {
@@ -91,13 +87,40 @@ export class UsersService {
         });
       }
       await this.userRepository.update({ id }, { username });
+      await this.userRepository.syncPersonEmail(id, username);
     }
 
-    if (role_ids?.length) {
+    if (person) {
+      await this.userRepository.upsertPerson(id, username ?? exists.username, person);
+    }
+
+    if (role_ids) {
+      if (!role_ids.length) {
+        throw new RpcException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Elige al menos un rol.',
+        });
+      }
+      await this.assertNotLastAdminLoss(id, role_ids);
       await this.rolesService.setRoles({ user_id: id, roles_id: role_ids });
     }
 
     return this.userRepository.findOne(id);
+  }
+
+  private async assertNotLastAdminLoss(userId: string, incomingRoleIds?: string[]) {
+    const admin = await this.rolesService.findOne('ADMIN');
+    const user = await this.userRepository.findOne(userId);
+    const hasAdmin = user?.user_role?.some((ur) => ur.role.name === 'ADMIN');
+    const wouldLose = hasAdmin && (incomingRoleIds ? !incomingRoleIds.includes(admin.id) : true);
+    if (!wouldLose) return;
+    const n = await this.userRepository.countActiveAdmins();
+    if (n <= 1) {
+      throw new RpcException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'No puedes dejar el sistema sin un administrador',
+      });
+    }
   }
 
   async getUserRoles(userId: string) {
@@ -108,6 +131,13 @@ export class UsersService {
   }
 
   async inactive(inactiveUserDto: InactiveUserDto, user: RequestUserDto) {
+    if (inactiveUserDto.user_id === user.id) {
+      throw new RpcException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'No puedes darte de baja a ti mismo',
+      });
+    }
+    await this.assertNotLastAdminLoss(inactiveUserDto.user_id);
     return this.userRepository.inactive(inactiveUserDto, user);
   }
 

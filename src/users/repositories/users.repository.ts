@@ -1,7 +1,7 @@
 import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { Prisma, Roles, user, person } from '@prisma/client';
 import { isUUID } from 'class-validator';
-import { CreateUserDto, CreateUserWithoutPersonDto } from '../dto/create-user.dto';
+import { CreateUserDto, CreateUserWithoutPersonDto, PersonInputDto } from '../dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ResetPasswordPayload } from 'src/auth/interfaces/payload';
@@ -338,6 +338,61 @@ export class UsersRepository {
     return this.prismaService.user.update({
       where: { id: user_id },
       data: { person_id },
+    });
+  }
+
+  countActiveAdmins() {
+    return this.prismaService.user.count({
+      where: {
+        deleted_at: null,
+        user_role: { some: { role: { name: 'ADMIN' } } },
+      },
+    });
+  }
+
+  async upsertPerson(userId: string, username: string, person: PersonInputDto) {
+    const existing = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { person_id: true },
+    });
+    if (existing?.person_id) {
+      return this.prismaService.person.update({
+        where: { id: existing.person_id },
+        data: {
+          first_name: person.first_name,
+          last_name: person.last_name,
+          email: username,
+          document_number: person.document_number,
+          phone: person.phone ?? null,
+          document_type_id: person.document_type_id,
+        },
+      });
+    }
+    const created = await this.prismaService.person.create({
+      data: {
+        first_name: person.first_name,
+        last_name: person.last_name,
+        email: username,
+        document_number: person.document_number,
+        phone: person.phone,
+        document_type: { connect: { id: person.document_type_id } },
+      },
+    });
+    return this.prismaService.user.update({
+      where: { id: userId },
+      data: { person: { connect: { id: created.id } } },
+    });
+  }
+
+  async syncPersonEmail(userId: string, email: string) {
+    const existing = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { person_id: true },
+    });
+    if (!existing?.person_id) return;
+    return this.prismaService.person.update({
+      where: { id: existing.person_id },
+      data: { email },
     });
   }
 
