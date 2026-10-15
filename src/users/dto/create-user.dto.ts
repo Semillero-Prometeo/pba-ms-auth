@@ -12,11 +12,14 @@ import {
   IsEnum,
   IsOptional,
   IsBoolean,
+  MinLength,
+  Matches,
+  ArrayMinSize,
 } from 'class-validator';
 import { RequestUserDto } from 'src/core/dto/request-user.dto';
 export class CreateUserDto {
   @IsUUID('4')
-  @IsNotEmpty()
+  @IsOptional()
   person_id?: string;
 
   @IsString()
@@ -24,6 +27,20 @@ export class CreateUserDto {
   @MaxLength(120)
   @IsEmail()
   username: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(8)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*(?:\d|[^\w\s]))(?!.*[.\n]).*$/, {
+    message:
+      'La contraseña debe contener al menos una letra mayúscula, una letra minúscula, un número o un caracter especial',
+  })
+  password: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsUUID('4', { each: true })
+  role_ids: string[];
 
   @IsUUID('4')
   @IsOptional()

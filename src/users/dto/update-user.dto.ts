@@ -11,6 +11,7 @@ import {
   IsNotEmpty,
   IsObject,
   ValidateNested,
+  IsArray,
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateUserDto } from './create-user.dto';
@@ -34,6 +35,11 @@ export class UpdateAuthUserDto {
       'La contraseña debe contener al menos una letra mayúscula, una letra minúscula, un número o un caracter especial',
   })
   password?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
+  role_ids?: string[];
 }
 
 export class UpdateAuthUserPayload {

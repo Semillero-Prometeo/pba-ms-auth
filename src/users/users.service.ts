@@ -9,7 +9,7 @@ import { InactiveUserDto } from './dto/delete-user.dto';
 import { RpcException } from '@nestjs/microservices';
 import { RequestUserDto } from 'src/core/dto/request-user.dto';
 import { UserResponse } from './interfaces/user';
-import { app_settings, AppSettings, role, Roles } from '@prisma/client';
+import { app_settings, AppSettings } from '@prisma/client';
 import { RolesService } from 'src/roles/roles.service';
 import { AppSettingsService } from 'src/app-settings/app-settings.service';
 
@@ -41,10 +41,7 @@ export class UsersService {
       });
     }
 
-    const assignStudentRole = data.assign_student_role !== false;
-    const studentRole: role | null = assignStudentRole ? await this.rolesService.findOne(Roles.STUDENT) : null;
-
-    const result = await this.userRepository.create({ ...data, role_id: studentRole?.id ?? undefined });
+    const result = await this.userRepository.create(data);
 
     const newUser: UserResponse | null = await this.userRepository.findOne(result.username);
 

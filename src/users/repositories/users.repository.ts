@@ -135,11 +135,8 @@ export class UsersRepository {
   }
 
   async create(createUserDto: CreateUserDto) {
-    const { role_id, assign_student_role, person_id, ...data } = createUserDto;
-    const password = this.passwordGeneratorService.generateTemporaryPassword();
-    const hashedPassword = bcrypt.hashSync(password, 10);
-
-    const { isValid, errors } = this.passwordGeneratorService.validatePassword(hashedPassword);
+    const { role_id, assign_student_role, person_id, role_ids, password, ...data } = createUserDto;
+    const { isValid, errors } = this.passwordGeneratorService.validatePassword(createUserDto.password);
 
     if (!isValid) {
       throw new RpcException({
@@ -147,6 +144,8 @@ export class UsersRepository {
         statusCode: HttpStatus.BAD_REQUEST,
       });
     }
+
+    const hashedPassword = bcrypt.hashSync(createUserDto.password, 10);
 
     if (createUserDto.person_id) {
       const person = await this.prismaService.person.findUnique({
@@ -180,9 +179,10 @@ export class UsersRepository {
       },
     });
 
-    if (role_id) {
+    const ids = [...(role_ids ?? []), ...(role_id ? [role_id] : [])];
+    for (const rid of ids) {
       await this.prismaService.user_role.create({
-        data: { user_id: user.id, role_id },
+        data: { user_id: user.id, role_id: rid },
       });
     }
 
