@@ -178,27 +178,15 @@ export class AuthService {
     if (user.lock_until && user.lock_until <= new Date()) await this.resetAttempts(user);
     const isPasswordValid = oauth ? true : await compare(password, user.password);
 
-    if (user.is_first_login) {
-      if (!isPasswordValid) {
-        await this.handleFailedAttempt(user, attemptsSetting, lockUntilSetting);
-        return null;
-      }
-      // Generate special first-login token
-      await this.resetAttempts(user);
-      const resetToken = this.passwordGeneratorService.generatePasswordResetToken(user.id);
-      return {
-        ...user,
-        requiresPasswordChange: true,
-        resetToken,
-      };
-    }
-
     if (!isPasswordValid) {
       await this.handleFailedAttempt(user, attemptsSetting, lockUntilSetting);
       return null;
     }
 
     await this.resetAttempts(user);
+    if (user.is_first_login) {
+      await this.userService.update(user.id, { is_first_login: false });
+    }
     return user;
   }
 

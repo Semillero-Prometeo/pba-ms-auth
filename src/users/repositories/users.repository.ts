@@ -176,6 +176,7 @@ export class UsersRepository {
           data: {
             username: createUserDto.username,
             password: hashedPassword,
+            is_first_login: false,
             person: { connect: { id: person.id } },
           },
         });
@@ -207,6 +208,37 @@ export class UsersRepository {
       }
       throw e;
     }
+  }
+
+  async restoreWithCredentials(id: string, createUserDto: CreateUserDto) {
+    const { isValid, errors } = this.passwordGeneratorService.validatePassword(createUserDto.password);
+    if (!isValid) {
+      throw new RpcException({
+        message: errors.join(', '),
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+    if (!createUserDto.person) {
+      throw new RpcException({
+        message: 'Los datos de la persona son obligatorios',
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    const hashedPassword = bcrypt.hashSync(createUserDto.password, 10);
+    await this.prismaService.user.update({
+      where: { id },
+      data: {
+        password: hashedPassword,
+        is_first_login: false,
+        deleted_at: null,
+        deleted_reason: null,
+        failed_attempts: 0,
+        lock_until: null,
+        username: createUserDto.username,
+      },
+    });
+    await this.upsertPerson(id, createUserDto.username, createUserDto.person);
   }
 
   async update(where: Prisma.userWhereUniqueInput, updateUserDto: UpdateUserDto) {

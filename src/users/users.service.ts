@@ -31,11 +31,15 @@ export class UsersService {
   async create(data: CreateUserDto) {
     const user: UserResponse | null = await this.userRepository.findOne(data.username);
 
-    if (user) {
+    if (user && !user.deleted_at) {
       throw new RpcException({
         statusCode: HttpStatus.BAD_REQUEST,
         message: 'El usuario ya existe',
       });
+    }
+
+    if (user?.deleted_at) {
+      return this.restoreInactiveUser(user.id, data);
     }
 
     const result = await this.userRepository.create(data);
@@ -46,6 +50,19 @@ export class UsersService {
       statusCode: HttpStatus.CREATED,
       message: 'Usuario creado correctamente',
       data: { id: newUser.id, username: result.username },
+    };
+  }
+
+  private async restoreInactiveUser(id: string, data: CreateUserDto) {
+    await this.userRepository.restoreWithCredentials(id, data);
+    if (data.role_ids?.length) {
+      await this.rolesService.setRoles({ user_id: id, roles_id: data.role_ids });
+    }
+    const restored = await this.userRepository.findOne(id);
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Usuario reactivado correctamente',
+      data: { id: restored.id, username: restored.username },
     };
   }
 

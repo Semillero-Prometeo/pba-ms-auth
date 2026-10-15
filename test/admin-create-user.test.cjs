@@ -36,4 +36,15 @@ describe('admin create user', () => {
     assert.equal(findAll.includes('person_id: { not: null }'), false);
     assert.match(findAll, /deleted_at:\s*null/);
   });
+
+  it('creates with is_first_login false so the password works on login', () => {
+    const create = src.slice(src.indexOf('async create('), src.indexOf('async update('));
+    assert.match(create, /is_first_login:\s*false/);
+  });
+
+  it('reactivates an inactive user with the same username', () => {
+    assert.match(svc, /deleted_at/);
+    assert.match(svc, /Usuario reactivado correctamente/);
+  });
 });
+
