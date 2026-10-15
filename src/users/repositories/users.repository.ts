@@ -29,6 +29,7 @@ export class UsersRepository {
 
   async findAll({ skip, take, search, roles }: FindAllUsersQueryDto): Promise<PaginatedResponse<UserResponse>> {
     const baseWhere: Prisma.userWhereInput = {
+      deleted_at: null,
       ...(roles && {
         user_role: {
           some: {
@@ -38,7 +39,6 @@ export class UsersRepository {
           },
         },
       }),
-      person_id: { not: null },
     };
 
     const where: Prisma.userWhereInput = {
@@ -135,7 +135,7 @@ export class UsersRepository {
   }
 
   async create(createUserDto: CreateUserDto) {
-    const { role_id, assign_student_role, person_id, role_ids, password, ...data } = createUserDto;
+    const { role_id, person_id, role_ids, password, person: personPayload } = createUserDto;
     const { isValid, errors } = this.passwordGeneratorService.validatePassword(createUserDto.password);
 
     if (!isValid) {
@@ -145,50 +145,68 @@ export class UsersRepository {
       });
     }
 
+    if (!personPayload) {
+      throw new RpcException({
+        message: 'Los datos de la persona son obligatorios',
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+
     const hashedPassword = bcrypt.hashSync(createUserDto.password, 10);
 
-    if (createUserDto.person_id) {
-      const person = await this.prismaService.person.findUnique({
-        where: { id: createUserDto.person_id, deleted_at: null },
-      });
-
-      if (!person) {
-        throw new RpcException({
-          message: 'La persona no existe o no se encuentra activa, por favor verifique',
-          statusCode: HttpStatus.BAD_REQUEST,
-        });
-      }
-
-      await this.prismaService.person.update({
-        where: { id: person.id },
-        data: { email: createUserDto.username },
-      });
-    }
-
-    const user = await this.prismaService.user.create({
-      data: {
-        ...data,
-        password: hashedPassword,
-        ...(person_id
-          ? {
-              person: {
-                connect: { id: person_id },
+    try {
+      const user = await this.prismaService.$transaction(async (tx) => {
+        const person = person_id
+          ? await tx.person.update({
+              where: { id: person_id },
+              data: { email: createUserDto.username },
+            })
+          : await tx.person.create({
+              data: {
+                first_name: personPayload.first_name,
+                last_name: personPayload.last_name,
+                email: createUserDto.username,
+                document_number: personPayload.document_number,
+                phone: personPayload.phone,
+                document_type: { connect: { id: personPayload.document_type_id } },
               },
-            }
-          : {}),
-      },
-    });
+            });
 
-    const ids = [...(role_ids ?? []), ...(role_id ? [role_id] : [])];
-    for (const rid of ids) {
-      await this.prismaService.user_role.create({
-        data: { user_id: user.id, role_id: rid },
+        const created = await tx.user.create({
+          data: {
+            username: createUserDto.username,
+            password: hashedPassword,
+            person: { connect: { id: person.id } },
+          },
+        });
+
+        const ids = [...(role_ids ?? []), ...(role_id ? [role_id] : [])];
+        for (const rid of ids) {
+          await tx.user_role.create({ data: { user_id: created.id, role_id: rid } });
+        }
+        return created;
       });
+
+      const resetToken = this.passwordGeneratorService.generatePasswordResetToken(user.id);
+      return { id: user.id, username: user.username, resetToken };
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2002') {
+          const target = (e.meta?.target as string[] | undefined) ?? [];
+          const message = target.some((t) => t.includes('email') || t.includes('username'))
+            ? 'El usuario ya existe'
+            : 'Ya existe una persona registrada con este número y tipo de documento';
+          throw new RpcException({ message, statusCode: HttpStatus.BAD_REQUEST });
+        }
+        if (e.code === 'P2025') {
+          throw new RpcException({
+            message: 'El tipo de documento no existe',
+            statusCode: HttpStatus.BAD_REQUEST,
+          });
+        }
+      }
+      throw e;
     }
-
-    const resetToken = this.passwordGeneratorService.generatePasswordResetToken(user.id);
-
-    return { id: user.id, username: user.username, resetToken };
   }
 
   async update(where: Prisma.userWhereUniqueInput, updateUserDto: UpdateUserDto) {

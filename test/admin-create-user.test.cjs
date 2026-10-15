@@ -24,4 +24,16 @@ describe('admin create user', () => {
     assert.equal(svc.includes('assignStudentRole'), false);
     assert.equal(svc.includes('Roles.STUDENT'), false);
   });
+
+  it('creates a person and does not require FRONT_END_URL', () => {
+    assert.match(src, /person.create/);
+    assert.equal(svc.includes('FRONT_END_URL'), false);
+  });
+
+  it('lists users without requiring person_id and hides deleted', () => {
+    const repo = readFileSync(join(root, 'src/users/repositories/users.repository.ts'), 'utf8');
+    const findAll = repo.slice(repo.indexOf('async findAll'), repo.indexOf('async findOne'));
+    assert.equal(findAll.includes('person_id: { not: null }'), false);
+    assert.match(findAll, /deleted_at:\s*null/);
+  });
 });

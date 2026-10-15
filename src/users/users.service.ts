@@ -9,16 +9,13 @@ import { InactiveUserDto } from './dto/delete-user.dto';
 import { RpcException } from '@nestjs/microservices';
 import { RequestUserDto } from 'src/core/dto/request-user.dto';
 import { UserResponse } from './interfaces/user';
-import { app_settings, AppSettings } from '@prisma/client';
 import { RolesService } from 'src/roles/roles.service';
-import { AppSettingsService } from 'src/app-settings/app-settings.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly userRepository: UsersRepository,
     @Inject(forwardRef(() => RolesService)) private readonly rolesService: RolesService,
-    private readonly appSettingsService: AppSettingsService,
   ) {}
 
   private readonly logger = new Logger(UsersService.name);
@@ -44,17 +41,6 @@ export class UsersService {
     const result = await this.userRepository.create(data);
 
     const newUser: UserResponse | null = await this.userRepository.findOne(result.username);
-
-    const [frontendUrl]: [app_settings] = await Promise.all([
-      this.appSettingsService.findOne(AppSettings.FRONT_END_URL),
-    ]);
-
-    if (!frontendUrl) {
-      throw new RpcException({
-        message: 'No se encontró la URL de frontend',
-        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      });
-    }
 
     return {
       statusCode: HttpStatus.CREATED,
