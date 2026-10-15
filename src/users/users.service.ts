@@ -77,9 +77,13 @@ export class UsersService {
       });
     }
 
-    const { password, username } = data;
-    let changesMessage = 'Se han realizado los siguientes cambios en su perfil:';
-    let hasImportantChanges = false;
+    const { password, username, role_ids } = data;
+    if (!password && !username && !role_ids?.length) {
+      throw new RpcException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'No se ha enviado ningún dato para actualizar',
+      });
+    }
 
     if (password) {
       const isOldPassword = await bcrypt.compare(password, exists.password);
@@ -89,38 +93,25 @@ export class UsersService {
           message: 'Esta contraseña ya ha sido utilizada anteriormente, por favor elige una nueva',
         });
       }
-
-      changesMessage += '\n- Su contraseña ha sido actualizada.';
-      hasImportantChanges = true;
-
-      const updateData: UpdateUserDto = { password, is_first_login: true };
-      const result = await this.userRepository.update({ id }, updateData);
-
-      return result.updatedUser;
+      await this.userRepository.update({ id }, { password, is_first_login: true });
     }
 
     if (username) {
-      // Validar si el nuevo username ya existe
-      const user = await this.userRepository.findOne(username);
-      if (user && user.id !== id) {
+      const other = await this.userRepository.findOne(username);
+      if (other && other.id !== id) {
         throw new RpcException({
           statusCode: HttpStatus.BAD_REQUEST,
-          message: `El nombre de usuario ${username || 'N/A'} ya existe`,
+          message: `El nombre de usuario ${username} ya existe`,
         });
       }
-
-      changesMessage += `\n- Su correo electrónico ha sido actualizado de ${exists.username} a ${username}.`;
-      hasImportantChanges = true;
-
-      const result = await this.userRepository.update({ id }, { username, person_id: exists.person.id });
-
-      return result.updatedUser;
+      await this.userRepository.update({ id }, { username });
     }
 
-    throw new RpcException({
-      statusCode: HttpStatus.BAD_REQUEST,
-      message: 'No se ha enviado ningún dato para actualizar',
-    });
+    if (role_ids?.length) {
+      await this.rolesService.setRoles({ user_id: id, roles_id: role_ids });
+    }
+
+    return this.userRepository.findOne(id);
   }
 
   async getUserRoles(userId: string) {
