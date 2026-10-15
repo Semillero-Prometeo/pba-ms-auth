@@ -13,10 +13,13 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
 export async function createDocumentTypes() {
-  await prisma.document_type.createMany({
-    data: DOCUMENT_TYPES,
-    skipDuplicates: true,
-  });
+  for (const row of DOCUMENT_TYPES) {
+    await prisma.document_type.upsert({
+      where: { short_name: row.short_name },
+      update: { name: row.name },
+      create: row,
+    });
+  }
 }
 
 export const createSeedRoles = async () => {

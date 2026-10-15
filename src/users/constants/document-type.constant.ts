@@ -3,8 +3,8 @@ import { ExternalDocumentType } from 'src/document-types/enum/external-document-
 
 export const HOMOLOGATE_DOCUMENT_TYPE: Record<ExternalDocumentType, DocumentTypes> = {
   [ExternalDocumentType.NACIONAL]: DocumentTypes.NATIONAL_ID,
-  [ExternalDocumentType.EXTRANJERO]: DocumentTypes.FOREIGNER_ID,
-  [ExternalDocumentType.PASAPORTE]: DocumentTypes.PASSPORT,
-  [ExternalDocumentType.RESIDENCIA]: DocumentTypes.RESIDENCY_PERMISSION,
+  [ExternalDocumentType.EXTRANJERO]: DocumentTypes.OTHER,
+  [ExternalDocumentType.PASAPORTE]: DocumentTypes.OTHER,
+  [ExternalDocumentType.RESIDENCIA]: DocumentTypes.OTHER,
   [ExternalDocumentType.OTRO]: DocumentTypes.OTHER,
 };

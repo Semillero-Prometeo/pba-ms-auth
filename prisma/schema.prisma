@@ -130,10 +130,8 @@ enum Roles {
 }
 
 enum DocumentTypes {
-  FOREIGNER_ID
   NATIONAL_ID
-  PASSPORT
-  RESIDENCY_PERMISSION
+  IDENTITY_CARD
   OTHER
 
   @@schema("auth")
