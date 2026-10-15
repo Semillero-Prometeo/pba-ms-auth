@@ -14,7 +14,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateUserDto } from './create-user.dto';
+import { CreateUserDto, PersonInputDto } from './create-user.dto';
 import { Type } from 'class-transformer';
 import { RequestUserDto } from 'src/core/dto/request-user.dto';
 
@@ -40,6 +40,12 @@ export class UpdateAuthUserDto {
   @IsArray()
   @IsUUID('4', { each: true })
   role_ids?: string[];
+
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => PersonInputDto)
+  person?: PersonInputDto;
 }
 
 export class UpdateAuthUserPayload {
