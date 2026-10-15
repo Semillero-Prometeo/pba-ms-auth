@@ -103,7 +103,7 @@ model person {
   document_type_id String    @db.Char(36)
   first_name       String    @db.VarChar(50)
   last_name        String    @db.VarChar(50)
-  email            String    @unique @db.VarChar(40)
+  email            String    @unique @db.VarChar(120)
   document_number  String?   @db.VarChar(11)
   phone            String?   @db.VarChar(15)
   image_url        String?   @db.VarChar(255)
@@ -125,8 +125,6 @@ model person {
 enum Roles {
   ADMIN
   USER
-  STUDENT
-  TEACHER
 
   @@schema("auth")
 }

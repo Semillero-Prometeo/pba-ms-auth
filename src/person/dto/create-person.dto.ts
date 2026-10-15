@@ -27,6 +27,6 @@ export class CreatePersonDto {
 
   @IsEmail({}, { message: 'El correo electrónico no es válido' })
   @IsNotEmpty({ message: 'El correo electrónico es requerido' })
-  @MaxLength(40, { message: 'El correo electrónico no puede tener más de 40 caracteres' })
+  @MaxLength(120, { message: 'El correo electrónico no puede tener más de 120 caracteres' })
   email: string;
 }
